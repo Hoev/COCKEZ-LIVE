@@ -2,7 +2,7 @@ name: APiX Auto Fisher
 
 on:
   schedule:
-    - cron: "*/2 * * * *" # يعمل كل دقيقتين
+    - cron: "0 */6 * * *" # يعمل كل 6 ساعات تلقائياً
   workflow_dispatch: # لإضافة زر تشغيل يدوي
 
 jobs:
