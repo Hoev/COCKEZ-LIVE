@@ -1,0 +1,31 @@
+name: APiX Auto Fisher
+
+on:
+  schedule:
+    - cron: "*/2 * * * *" # يعمل كل دقيقتين
+  workflow_dispatch: # لإضافة زر تشغيل يدوي
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Run Fisher
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_KV_NAMESPACE: ${{ secrets.CF_KV_NAMESPACE }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          COOKIE_CH1: ${{ secrets.COOKIE_CH1 }}
+          COOKIE_CH2: ${{ secrets.COOKIE_CH2 }}
+          COOKIE_CH3: ${{ secrets.COOKIE_CH3 }}
+        run: python fisher.py
