@@ -1,9 +1,9 @@
-name: APiX Auto Fisher
+name: APiX Auto Fisher & Spaces WakeUp
 
 on:
   schedule:
-    - cron: "0 */6 * * *" # يعمل كل 6 ساعات تلقائياً
-  workflow_dispatch: # لإضافة زر تشغيل يدوي
+    - cron: "0 */6 * * *" # يعمل كل 6 ساعات تلقائياً (لتجديد الكوكيز وإيقاظ المنصات)
+  workflow_dispatch: # لإضافة زر تشغيل يدوي من تبويب Actions
 
 jobs:
   build:
@@ -32,3 +32,14 @@ jobs:
           COOKIE_CH5: ${{ secrets.COOKIE_CH5 }}
           COOKIE_CH6: ${{ secrets.COOKIE_CH6 }}
         run: python fisher.py
+
+      - name: Wake up all 6 Hugging Face Spaces
+        run: |
+          echo "🔄 جاري إيقاظ مشاريع Hugging Face الستة لضمان عدم توقفها..."
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-1 > /dev/null
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-2 > /dev/null
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-3 > /dev/null
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-4 > /dev/null
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-5 > /dev/null
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-6 > /dev/null
+          echo "✅ تم تنشيط وإيقاظ جميع المشاريع الستة بنجاح!"
