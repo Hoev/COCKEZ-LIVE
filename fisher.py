@@ -1,17 +1,15 @@
 import requests
 import json
 import os
-import re
-import html
 
 # المعرفات الخاصة بقنوات APiX الستة
 CHANNELS_MAP = {
-    "14574023089903": os.getenv('COOKIE_CH1'), # APiX 1
-    "14639543099119": os.getenv('COOKIE_CH2'), # APiX 2
-    "14644667621103": os.getenv('COOKIE_CH3'), # APiX 3 
-    "14648750055151": os.getenv('COOKIE_CH4'), # APiX 4 
-    "14648779808495": os.getenv('COOKIE_CH5'), # APiX 5 
-    "14648850915055": os.getenv('COOKIE_CH6')  # APiX 6 
+    "14574023089903": os.getenv('COOKIE_CH1'),
+    "14639543099119": os.getenv('COOKIE_CH2'),
+    "14644667621103": os.getenv('COOKIE_CH3'),
+    "14648750055151": os.getenv('COOKIE_CH4'),
+    "14648779808495": os.getenv('COOKIE_CH5'),
+    "14648850915055": os.getenv('COOKIE_CH6')
 }
 
 # إعدادات Cloudflare المستخرجة من الأسرار
@@ -27,84 +25,57 @@ def get_last_cookies_from_kv():
         res = requests.get(KV_URL, headers=CF_HEADERS)
         if res.status_code == 200:
             return res.json()
-    except Exception as e:
-        print(f"⚠️ خطأ أثناء جلب البيانات من KV: {e}")
+    except:
+        pass
     return {}
 
 def refresh_channel(video_id, secret_cookie, last_kv_cookie):
-    """تحديث الكوكيز واستخراج رابط HLS مباشرة من كود مصدر الصفحة (بدون حماية TKN)"""
+    """تحديث الكوكيز بناءً على آخر حالة ناجحة"""
     # الأولوية للـ كوكيز الموجود في الخزنة، وإذا كانت فارغة نستخدم السيكرت
     cookie_to_use = last_kv_cookie if last_kv_cookie else secret_cookie
     
     if not cookie_to_use:
-        print(f"⚠️ تجاهل القناة {video_id}: لا يوجد كوكيز متاح.")
         return None
 
-    # الدخول لرابط البث المباشر كمتصفح عادي
     url = f"https://ok.ru/live/{video_id}"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Cookie": cookie_to_use,
-        "Accept-Language": "en-US,en;q=0.9"
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+        "Referer": "https://ok.ru/"
     }
     
+    session = requests.Session()
+    # تحويل نص الكوكيز إلى قاموس للجلسة
+    c_dict = {c.split('=')[0].strip(): c.split('=')[1].strip() for c in cookie_to_use.split(';') if '=' in c}
+    session.cookies.update(c_dict)
+    
     try:
-        res = requests.get(url, headers=headers, timeout=15)
-        if res.status_code == 200:
-            # فك تشفير الكيانات HTML
-            page_text = html.unescape(res.text)
-            
-            # صيد رابط الـ HLS من وسط أكواد الصفحة باستخدام Regex
-            match = re.search(r'"hlsManifestUrl"\s*:\s*"([^"]+)"', page_text)
-            
-            if match:
-                # تنظيف الرابط من الخطوط المائلة العكسية
-                hls_url = match.group(1).replace('\\/', '/')
-                return {
-                    "cookie": cookie_to_use,
-                    "url": hls_url
-                }
-            else:
-                print(f"⚠️ لم يتم العثور على رابط HLS. قد يكون البث متوقفاً أو الكوكيز منتهي.")
+        session.get(url, headers=headers, timeout=20)
+        # استخراج الكوكيز الجديد المحدث
+        new_cookies = session.cookies.get_dict()
+        if new_cookies:
+            return "; ".join([f"{k}={v}" for k, v in new_cookies.items()])
         else:
-            print(f"⚠️ خطأ في الاستجابة للقناة {video_id}: الكود {res.status_code}")
-    except Exception as e:
-        print(f"⚠️ فشل الاتصال بالقناة {video_id}: {e}")
-        
-    return None
+            return cookie_to_use
+    except:
+        return cookie_to_use
 
-def main():
-    print("🚀 Starting APiX Auto Fisher (Scraping 6 Channels)...")
-    last_data = get_last_cookies_from_kv()
-    
-    final_data = {}
-    
-    for vid, secret_cookie in CHANNELS_MAP.items():
-        print(f"\n🔄 جاري معالجة القناة ID: {vid} ...")
-        
-        channel_info = last_data.get(vid, {})
-        last_kv_cookie = channel_info.get("cookie", "") if isinstance(channel_info, dict) else ""
-        
-        channel_data = refresh_channel(vid, secret_cookie, last_kv_cookie)
-        
-        if channel_data:
-            final_data[vid] = channel_data
-            print(f"✅ نجاح: تم استخراج الرابط للقناة {vid}")
-        else:
-            print(f"❌ فشل: لم نتمكن من معالجة القناة {vid}")
-            
-    if final_data:
-        print("\n📤 جاري رفع القائمة المحدثة إلى Cloudflare KV...")
-        payload = json.dumps(final_data)
-        
-        upload_res = requests.put(KV_URL, headers=CF_HEADERS, data=payload)
-        
-        if upload_res.status_code == 200:
-            print("🎉 تم التحديث بنجاح! (KV Updated Successfully!)")
-        else:
-            print(f"⚠️ فشل الرفع لـ KV: {upload_res.status_code} - {upload_res.text}")
+# 1. جلب البيانات الحالية من الخزنة
+kv_data = get_last_cookies_from_kv()
+
+# 2. تحديث كل قناة بناءً على كوكيزها الخاص
+final_data = {}
+print("🚀 بدء تحديث الكوكيز للقنوات الستة...")
+for cid, secret_c in CHANNELS_MAP.items():
+    print(f"🔄 معالجة القناة: {cid}")
+    last_c = kv_data.get(cid)
+    new_c = refresh_channel(cid, secret_c, last_c)
+    if new_c:
+        final_data[cid] = new_c
+
+# 3. حفظ البيانات الجديدة في الخزنة
+if final_data:
+    res = requests.put(KV_URL, headers=CF_HEADERS, data=json.dumps(final_data))
+    if res.status_code == 200:
+        print("✅ نجاح: تم تحديث الخزنة بكوكيز جديد لكل القنوات.")
     else:
-        print("\n⚠️ لا توجد أي قنوات صالحة لرفعها. تأكد من صحة الكوكيز في الأسرار.")
-
-if __name__ == "__main__":
-    main()
+        print(f"❌ فشل تحديث الخزنة: {res.text}")
