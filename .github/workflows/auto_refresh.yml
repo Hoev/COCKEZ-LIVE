@@ -28,4 +28,7 @@ jobs:
           COOKIE_CH1: ${{ secrets.COOKIE_CH1 }}
           COOKIE_CH2: ${{ secrets.COOKIE_CH2 }}
           COOKIE_CH3: ${{ secrets.COOKIE_CH3 }}
+          COOKIE_CH4: ${{ secrets.COOKIE_CH4 }}
+          COOKIE_CH5: ${{ secrets.COOKIE_CH5 }}
+          COOKIE_CH6: ${{ secrets.COOKIE_CH6 }}
         run: python fisher.py
