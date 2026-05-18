@@ -49,12 +49,12 @@ jobs:
           echo "🔄 جاري إيقاظ مشاريع Hugging Face لضمان عدم توقفها..."
           
           # إيقاظ القنوات الرياضية والأساسية الستة
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-1 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 1"
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-2 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 2"
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-3 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 3"
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-4 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 4"
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-5 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 5"
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-6 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 6"
+          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-1 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 1"
+          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-2 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 2"
+          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-3 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 3"
+          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-4 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 4"
+          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-5 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 5"
+          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-6 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 6"
           
           # إيقاظ قنوات الأفلام الجديدة
           curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-1 > /dev/null && echo "✅ أيقظت قناة أفلام 1"
