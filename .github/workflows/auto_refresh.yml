@@ -8,7 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # إضافة صلاحيات التعديل لكي يستطيع الأكشن حذف السجلات القديمة الخاصة به
     permissions:
       actions: write
       contents: read
@@ -45,23 +44,34 @@ jobs:
           COOKIE_CH_ME_MOVIE_1: ${{ secrets.COOKIE_CH_ME_MOVIE_1 }}
         run: python fisher.py
 
-      - name: Wake up all 6 Hugging Face Spaces
+      - name: Wake up all Hugging Face Spaces
         run: |
-          echo "🔄 جاري إيقاظ مشاريع Hugging Face الستة لضمان عدم توقفها..."
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-1 > /dev/null
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-2 > /dev/null
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-3 > /dev/null
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-4 > /dev/null
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-5 > /dev/null
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-6 > /dev/null
-          echo "✅ تم تنشيط وإيقاظ جميع المشاريع الستة بنجاح!"
+          echo "🔄 جاري إيقاظ مشاريع Hugging Face لضمان عدم توقفها..."
+          
+          # إيقاظ القنوات الرياضية والأساسية الستة
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-1 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 1"
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-2 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 2"
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-3 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 3"
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-4 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 4"
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-5 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 5"
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-6 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 6"
+          
+          # إيقاظ قنوات الأفلام الجديدة
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-1 > /dev/null && echo "✅ أيقظت قناة أفلام 1"
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-2 > /dev/null && echo "✅ أيقظت قناة أفلام 2"
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-3 > /dev/null && echo "✅ أيقظت قناة أفلام 3"
+          curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-4 > /dev/null && echo "✅ أيقظت قناة أفلام 4"
+          
+          # إيقاظ القناة الخاصة بك
+          curl -s -I https://huggingface.co/spaces/x3418/Moive-me > /dev/null && echo "✅ أيقظت قناتي الخاصة للأفلام"
+          
+          echo "✨ تم تنشيط وإيقاظ جميع المنصات بنجاح!"
 
       - name: Delete Old Workflow Runs
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "🗑️ جاري البحث عن سجلات الأكشن القديمة لحذفها..."
-          # استخراج جميع أرقام السجلات، وتجاهل أحدث سجل (السجل الحالي)، ثم حذف الباقي
           gh run list --workflow "${{ github.workflow }}" --json databaseId -q '.[].databaseId' | tail -n +2 | while read run_id; do
             echo "حذف السجل رقم: $run_id"
             gh run delete "$run_id" || true
