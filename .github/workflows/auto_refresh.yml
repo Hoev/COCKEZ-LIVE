@@ -36,19 +36,22 @@ jobs:
           COOKIE_CH4: ${{ secrets.COOKIE_CH4 }}
           COOKIE_CH5: ${{ secrets.COOKIE_CH5 }}
           COOKIE_CH6: ${{ secrets.COOKIE_CH6 }}
-          # قنوات الأفلام الخمسة الجديدة
+          # قنوات الأفلام الخمسة
           COOKIE_CH_MOVIE_1: ${{ secrets.COOKIE_CH_MOVIE_1 }}
           COOKIE_CH_MOVIE_2: ${{ secrets.COOKIE_CH_MOVIE_2 }}
           COOKIE_CH_MOVIE_3: ${{ secrets.COOKIE_CH_MOVIE_3 }}
           COOKIE_CH_MOVIE_4: ${{ secrets.COOKIE_CH_MOVIE_4 }}
           COOKIE_CH_ME_MOVIE_1: ${{ secrets.COOKIE_CH_ME_MOVIE_1 }}
+          # القناتان الخاصتان الجديدتان
+          COOKIE_APIX_1: ${{ secrets.COOKIE_APIX_1 }}
+          COOKIE_APIX_2: ${{ secrets.COOKIE_APIX_2 }}
         run: python fisher.py
 
       - name: Wake up all Hugging Face Spaces
         run: |
           echo "🔄 جاري إيقاظ مشاريع Hugging Face لضمان عدم توقفها..."
           
-          # إيقاظ القنوات الرياضية والأساسية الستة
+          # إيقاظ القنوات الرياضية والأساسية الستة (حساب ipx0)
           curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-1 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 1"
           curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-2 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 2"
           curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-3 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 3"
@@ -56,13 +59,17 @@ jobs:
           curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-5 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 5"
           curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-6 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 6"
           
-          # إيقاظ قنوات الأفلام الجديدة
+          # إيقاظ القنوات الخاصة الجديدة (حساب ipx0)
+          curl -s -I https://huggingface.co/spaces/ipx0/Apix-1 > /dev/null && echo "✅ أيقظت قناة APiX الخاصة 1"
+          curl -s -I https://huggingface.co/spaces/ipx0/Apix-2 > /dev/null && echo "✅ أيقظت قناة APiX الخاصة 2"
+          
+          # إيقاظ قنوات الأفلام (حساب x3418)
           curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-1 > /dev/null && echo "✅ أيقظت قناة أفلام 1"
           curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-2 > /dev/null && echo "✅ أيقظت قناة أفلام 2"
           curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-3 > /dev/null && echo "✅ أيقظت قناة أفلام 3"
           curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-4 > /dev/null && echo "✅ أيقظت قناة أفلام 4"
           
-          # إيقاظ القناة الخاصة بك
+          # إيقاظ القناة الخاصة بك للأفلام (حساب x3418)
           curl -s -I https://huggingface.co/spaces/x3418/Moive-me > /dev/null && echo "✅ أيقظت قناتي الخاصة للأفلام"
           
           echo "✨ تم تنشيط وإيقاظ جميع المنصات بنجاح!"
