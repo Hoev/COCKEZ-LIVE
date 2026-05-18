@@ -8,6 +8,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # إضافة صلاحيات التعديل لكي يستطيع الأكشن حذف السجلات القديمة الخاصة به
+    permissions:
+      actions: write
+      contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,12 +30,19 @@ jobs:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_KV_NAMESPACE: ${{ secrets.CF_KV_NAMESPACE }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          # القنوات الأساسية الستة
           COOKIE_CH1: ${{ secrets.COOKIE_CH1 }}
           COOKIE_CH2: ${{ secrets.COOKIE_CH2 }}
           COOKIE_CH3: ${{ secrets.COOKIE_CH3 }}
           COOKIE_CH4: ${{ secrets.COOKIE_CH4 }}
           COOKIE_CH5: ${{ secrets.COOKIE_CH5 }}
           COOKIE_CH6: ${{ secrets.COOKIE_CH6 }}
+          # قنوات الأفلام الخمسة الجديدة
+          COOKIE_CH_MOVIE_1: ${{ secrets.COOKIE_CH_MOVIE_1 }}
+          COOKIE_CH_MOVIE_2: ${{ secrets.COOKIE_CH_MOVIE_2 }}
+          COOKIE_CH_MOVIE_3: ${{ secrets.COOKIE_CH_MOVIE_3 }}
+          COOKIE_CH_MOVIE_4: ${{ secrets.COOKIE_CH_MOVIE_4 }}
+          COOKIE_CH_ME_MOVIE_1: ${{ secrets.COOKIE_CH_ME_MOVIE_1 }}
         run: python fisher.py
 
       - name: Wake up all 6 Hugging Face Spaces
@@ -43,3 +55,15 @@ jobs:
           curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-5 > /dev/null
           curl -s -I https://huggingface.co/spaces/x3418/Apix-ch-6 > /dev/null
           echo "✅ تم تنشيط وإيقاظ جميع المشاريع الستة بنجاح!"
+
+      - name: Delete Old Workflow Runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🗑️ جاري البحث عن سجلات الأكشن القديمة لحذفها..."
+          # استخراج جميع أرقام السجلات، وتجاهل أحدث سجل (السجل الحالي)، ثم حذف الباقي
+          gh run list --workflow "${{ github.workflow }}" --json databaseId -q '.[].databaseId' | tail -n +2 | while read run_id; do
+            echo "حذف السجل رقم: $run_id"
+            gh run delete "$run_id" || true
+          done
+          echo "✨ تمت عملية التنظيف بنجاح! السجل الحالي هو الوحيد المتبقي."
