@@ -2,14 +2,24 @@ import requests
 import json
 import os
 
-# المعرفات الخاصة بقنوات APiX الستة
+# المعرفات الخاصة بقنوات APiX الأساسية وقنوات الأفلام (11 قناة)
 CHANNELS_MAP = {
+    # القنوات الأساسية الستة
     "14574023089903": os.getenv('COOKIE_CH1'),
     "14639543099119": os.getenv('COOKIE_CH2'),
     "14644667621103": os.getenv('COOKIE_CH3'),
     "14648750055151": os.getenv('COOKIE_CH4'),
     "14648779808495": os.getenv('COOKIE_CH5'),
-    "14648850915055": os.getenv('COOKIE_CH6')
+    "14648850915055": os.getenv('COOKIE_CH6'),
+    
+    # قنوات الأفلام الأربعة الجديدة
+    "14649045950191": os.getenv('COOKIE_CH_MOVIE_1'),
+    "14649095954159": os.getenv('COOKIE_CH_MOVIE_2'),
+    "14649204874991": os.getenv('COOKIE_CH_MOVIE_3'),
+    "14649226370799": os.getenv('COOKIE_CH_MOVIE_4'),
+    
+    # قناتك الخاصة
+    "14611275587311": os.getenv('COOKIE_CH_ME_MOVIE_1')
 }
 
 # إعدادات Cloudflare المستخرجة من الأسرار
@@ -64,7 +74,7 @@ kv_data = get_last_cookies_from_kv()
 
 # 2. تحديث كل قناة بناءً على كوكيزها الخاص
 final_data = {}
-print("🚀 بدء تحديث الكوكيز للقنوات الستة...")
+print("🚀 بدء تحديث الكوكيز لـ 11 قناة...")
 for cid, secret_c in CHANNELS_MAP.items():
     print(f"🔄 معالجة القناة: {cid}")
     last_c = kv_data.get(cid)
