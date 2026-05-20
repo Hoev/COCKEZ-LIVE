@@ -51,18 +51,28 @@ def get_last_cookies_from_kv():
     return {}
 
 def force_refresh_channel(video_id, secret_cookie, last_kv_cookie, current_ua):
-    """الدالة الشرسة: ترفض الخروج حتى تحصل على كوكيز جديد (بحد أقصى 4 محاولات)"""
+    """الدالة الشرسة: تحذف التوكنات القديمة لتجبر السيرفر على إصدار توكنات جديدة"""
     cookie_to_use = last_kv_cookie if last_kv_cookie else secret_cookie
     if not cookie_to_use:
         return None, False
 
     session = requests.Session()
-    old_dict = {c.split('=')[0].strip(): c.split('=')[1].strip() for c in cookie_to_use.split(';') if '=' in c}
-    session.cookies.update(old_dict)
     
-    # إعداد الروابط والهيدرز
+    # 1. تفكيك الكوكيز القديم إلى قاموس (Dict)
+    old_dict = {c.split('=')[0].strip(): c.split('=')[1].strip() for c in cookie_to_use.split(';') if '=' in c}
+    
+    # 2. تكتيك القناص: ننسخ الكوكيز، ونمسح منه AUTHCODE و JSESSIONID
+    hacked_dict = old_dict.copy()
+    if 'AUTHCODE' in hacked_dict:
+        del hacked_dict['AUTHCODE']
+    if 'JSESSIONID' in hacked_dict:
+        del hacked_dict['JSESSIONID']
+        
+    # نحقن الكوكيز "المقصوص" في الجلسة لكي ندخل بهويتنا ولكن بدون جلسة فعالة
+    session.cookies.update(hacked_dict)
+    
     main_url = f"https://ok.ru/live/{video_id}"
-    deep_url = "https://ok.ru/dk?cmd=videoPlayerMetadata" # الرابط السري الذي جلبته أنت
+    deep_url = "https://ok.ru/dk?cmd=videoPlayerMetadata"
     
     get_headers = {"User-Agent": current_ua, "Referer": "https://ok.ru/"}
     post_headers = {
@@ -73,7 +83,6 @@ def force_refresh_channel(video_id, secret_cookie, last_kv_cookie, current_ua):
         "X-Requested-With": "XMLHttpRequest",
         "Origin": "https://ok.ru"
     }
-    # بيانات الـ POST التي تطلب معلومات البث
     payload = f"mid={video_id}&is=on&st.location=AutoplayLayerMovieRBlock%2Fvideo"
 
     max_retries = 4
@@ -81,37 +90,34 @@ def force_refresh_channel(video_id, secret_cookie, last_kv_cookie, current_ua):
         print(f"   🔄 [محاولة {attempt}/{max_retries}] جاري التفاوض مع السيرفر...")
         
         try:
-            # 1. زيارة الصفحة الأساسية
-            print("   🌐 الخطوة 1: الدخول للصفحة لفتح الجلسة الأساسية...")
+            print("   🌐 الخطوة 1: الدخول للصفحة لفتح جلسة جديدة كلياً...")
             session.get(main_url, headers=get_headers, timeout=15)
             
-            # 2. إرسال الطلب العميق
-            print("   🔥 الخطوة 2: إرسال طلب POST العميق لاستفزاز السيرفر لإصدار AUTHCODE جديد...")
+            print("   🔥 الخطوة 2: إرسال طلب POST العميق لاستخراج الـ AUTHCODE الجديد...")
             response = session.post(deep_url, headers=post_headers, data=payload, timeout=15)
             
             if response.status_code == 200:
-                print("   📥 نجحت في الوصول للرابط! جاري تحليل الكوكيز المستلم...")
                 new_cookies_dict = session.cookies.get_dict()
                 
+                # ندمج الكوكيز الجديد مع الأصلي (الذي يحتوي على هويتنا الكاملة)
                 merged = old_dict.copy()
                 merged.update(new_cookies_dict)
                 
-                # 3. المقارنة الصارمة
-                if merged == old_dict:
-                    print("   ⚠️ الكوكيز لم يتغير! السيرفر أعطانا نفس الكوكيز القديم.")
+                if merged.get('AUTHCODE') == old_dict.get('AUTHCODE'):
+                    print("   ⚠️ السيرفر عنيد وأعطانا نفس الـ AUTHCODE القديم.")
                     if attempt < max_retries:
                         wait_time = random.randint(3, 5)
-                        print(f"   ⏳ لن نخرج! سننتظر {wait_time} ثوانٍ ونهاجم مرة أخرى...")
+                        print(f"   ⏳ سننتظر {wait_time} ثوانٍ ونهاجم مرة أخرى...")
                         time.sleep(wait_time)
-                        continue # إعادة المحاولة
+                        continue
                     else:
-                        print("   ❌ استنفدنا المحاولات. السيرفر يعاند ولن يعطي كوكيز جديد الآن.")
+                        print("   ❌ استنفدنا المحاولات. سيتم إرجاع الكوكيز القديم.")
                         return cookie_to_use, False
                 else:
-                    print("   🎉 اختراق ناجح! حصلنا على كوكيز جديد ومختلف تماماً.")
+                    print("   🎉 اختراق ناجح! السيرفر رضخ وأعطانا توكنات جديدة تماماً.")
                     return "; ".join([f"{k}={v}" for k, v in merged.items()]), True
             else:
-                print(f"   ❌ فشلت! السيرفر رفض الطلب العميق (Status {response.status_code}).")
+                print(f"   ❌ فشلت! السيرفر رفض الطلب (Status {response.status_code}).")
                 if attempt < max_retries:
                     time.sleep(3)
                     continue
@@ -141,7 +147,7 @@ for i, cid in enumerate(channel_ids):
     
     ua_index = (i // 2) % len(USER_AGENTS)
     current_ua = USER_AGENTS[ua_index]
-    print(f"   🕵️ تغيير المتصفح إلى: متصفح رقم {ua_index + 1}")
+    print(f"   🕵️ تغيير المتصفح إلى: رقم {ua_index + 1}")
     
     secret_c = CHANNELS_MAP[cid]
     last_c = kv_data.get(cid)
@@ -155,7 +161,7 @@ for i, cid in enumerate(channel_ids):
             
     if i < len(channel_ids) - 1:
         delay = random.randint(3, 6)
-        print(f"   💤 استراحة تكتيكية {delay} ثوانٍ قبل القناة التالية...")
+        print(f"   💤 استراحة تكتيكية {delay} ثوانٍ للتمويه...")
         time.sleep(delay)
 
 print(f"\n📊 التقرير النهائي: تم إجبار السيرفر على تغيير الكوكيز في ({changes_count}) قنوات.")
@@ -165,6 +171,15 @@ if final_data:
     res = requests.put(KV_URL, headers=CF_HEADERS, data=json.dumps(final_data))
     if res.status_code == 200:
         print("✅ إنجاز: تم حفظ البيانات في الخزنة بنجاح.")
+        
+        # فحص مزدوج للتأكد من كلاود فلير
+        time.sleep(3)
+        verify_data = get_last_cookies_from_kv()
+        sample_cid = channel_ids[0]
+        if verify_data.get(sample_cid) == final_data.get(sample_cid):
+            print("✅ الفحص المزدوج سليم 100%: الكوكيز في KV يطابق الكوكيز الجديد!")
+        else:
+            print("❌ مشكلة في KV: كلاود فلير لم يحفظ البيانات الجديدة بالرغم من النجاح!")
     else:
         print(f"❌ فشل الحفظ في كلاود فلير: {res.text}")
 else:
