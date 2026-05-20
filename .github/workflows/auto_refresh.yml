@@ -1,17 +1,13 @@
-name: APiX Auto Fisher & Spaces WakeUp
+name: APiX Auto Fisher (Sharded)
 
 on:
   schedule:
-    - cron: "0 */6 * * *" # يعمل كل 6 ساعات تلقائياً (لتجديد الكوكيز وإيقاظ المنصات)
-  workflow_dispatch: # لإضافة زر تشغيل يدوي من تبويب Actions
+    - cron: "0 */6 * * *" # يعمل كل 6 ساعات تلقائياً
+  workflow_dispatch: # زر التشغيل اليدوي
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      actions: write
-      contents: read
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,63 +20,36 @@ jobs:
       - name: Install requests
         run: pip install requests
 
-      - name: Run Fisher
+      - name: Run Fisher 1 (Channels 1-5)
         env:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_KV_NAMESPACE: ${{ secrets.CF_KV_NAMESPACE }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          # القنوات الأساسية الستة
           COOKIE_CH1: ${{ secrets.COOKIE_CH1 }}
           COOKIE_CH2: ${{ secrets.COOKIE_CH2 }}
           COOKIE_CH3: ${{ secrets.COOKIE_CH3 }}
           COOKIE_CH4: ${{ secrets.COOKIE_CH4 }}
           COOKIE_CH5: ${{ secrets.COOKIE_CH5 }}
+        run: python fisher1.py
+
+      - name: Run Fisher 2 (Channels 6-9)
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_KV_NAMESPACE: ${{ secrets.CF_KV_NAMESPACE }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           COOKIE_CH6: ${{ secrets.COOKIE_CH6 }}
-          # قنوات الأفلام الخمسة
           COOKIE_CH_MOVIE_1: ${{ secrets.COOKIE_CH_MOVIE_1 }}
           COOKIE_CH_MOVIE_2: ${{ secrets.COOKIE_CH_MOVIE_2 }}
           COOKIE_CH_MOVIE_3: ${{ secrets.COOKIE_CH_MOVIE_3 }}
+        run: python fisher2.py
+
+      - name: Run Fisher 3 (Channels 10-13)
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_KV_NAMESPACE: ${{ secrets.CF_KV_NAMESPACE }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           COOKIE_CH_MOVIE_4: ${{ secrets.COOKIE_CH_MOVIE_4 }}
           COOKIE_CH_ME_MOVIE_1: ${{ secrets.COOKIE_CH_ME_MOVIE_1 }}
-          # القناتان الخاصتان الجديدتان
           COOKIE_APIX_1: ${{ secrets.COOKIE_APIX_1 }}
           COOKIE_APIX_2: ${{ secrets.COOKIE_APIX_2 }}
-        run: python fisher.py
-
-      - name: Wake up all Hugging Face Spaces
-        run: |
-          echo "🔄 جاري إيقاظ مشاريع Hugging Face لضمان عدم توقفها..."
-          
-          # إيقاظ القنوات الرياضية والأساسية الستة (حساب ipx0)
-          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-1 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 1"
-          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-2 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 2"
-          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-3 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 3"
-          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-4 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 4"
-          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-5 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 5"
-          curl -s -I https://huggingface.co/spaces/ipx0/Apix-ch-6 > /dev/null && echo "✅ أيقظت قناة APiX الرياضية 6"
-          
-          # إيقاظ القنوات الخاصة الجديدة (حساب ipx0)
-          curl -s -I https://huggingface.co/spaces/ipx0/Apix-1 > /dev/null && echo "✅ أيقظت قناة APiX الخاصة 1"
-          curl -s -I https://huggingface.co/spaces/ipx0/Apix-2 > /dev/null && echo "✅ أيقظت قناة APiX الخاصة 2"
-          
-          # إيقاظ قنوات الأفلام (حساب x3418)
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-1 > /dev/null && echo "✅ أيقظت قناة أفلام 1"
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-2 > /dev/null && echo "✅ أيقظت قناة أفلام 2"
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-3 > /dev/null && echo "✅ أيقظت قناة أفلام 3"
-          curl -s -I https://huggingface.co/spaces/x3418/Apix-movie-4 > /dev/null && echo "✅ أيقظت قناة أفلام 4"
-          
-          # إيقاظ القناة الخاصة بك للأفلام (حساب x3418)
-          curl -s -I https://huggingface.co/spaces/x3418/Moive-me > /dev/null && echo "✅ أيقظت قناتي الخاصة للأفلام"
-          
-          echo "✨ تم تنشيط وإيقاظ جميع المنصات بنجاح!"
-
-      - name: Delete Old Workflow Runs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "🗑️ جاري البحث عن سجلات الأكشن القديمة لحذفها..."
-          gh run list --workflow "${{ github.workflow }}" --json databaseId -q '.[].databaseId' | tail -n +2 | while read run_id; do
-            echo "حذف السجل رقم: $run_id"
-            gh run delete "$run_id" || true
-          done
-          echo "✨ تمت عملية التنظيف بنجاح! السجل الحالي هو الوحيد المتبقي."
+        run: python fisher3.py
