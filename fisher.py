@@ -2,11 +2,14 @@ import requests
 import json
 import os
 
-# المعرفات الخاصة بقنواتك
+# المعرفات الخاصة بـ 6 قنوات فقط (للملف الأول)
 CHANNELS_MAP = {
     "14574023089903": os.getenv('COOKIE_CH1'),
     "14639543099119": os.getenv('COOKIE_CH2'),
-    "14611275587311": os.getenv('COOKIE_CH3')
+    "14644667621103": os.getenv('COOKIE_CH3'),
+    "14648750055151": os.getenv('COOKIE_CH4'),
+    "14648779808495": os.getenv('COOKIE_CH5'),
+    "14648850915055": os.getenv('COOKIE_CH6')
 }
 
 # إعدادات Cloudflare المستخرجة من الأسرار
@@ -28,7 +31,6 @@ def get_last_cookies_from_kv():
 
 def refresh_channel(video_id, secret_cookie, last_kv_cookie):
     """تحديث الكوكيز بناءً على آخر حالة ناجحة"""
-    # الأولوية للـ كوكيز الموجود في الخزنة، وإذا كانت فارغة نستخدم السيكرت
     cookie_to_use = last_kv_cookie if last_kv_cookie else secret_cookie
     
     if not cookie_to_use:
@@ -41,33 +43,37 @@ def refresh_channel(video_id, secret_cookie, last_kv_cookie):
     }
     
     session = requests.Session()
-    # تحويل نص الكوكيز إلى قاموس للجلسة
     c_dict = {c.split('=')[0].strip(): c.split('=')[1].strip() for c in cookie_to_use.split(';') if '=' in c}
     session.cookies.update(c_dict)
     
     try:
-        session.get(url, headers=headers, timeout=20)
-        # استخراج الكوكيز الجديد المحدث
-        new_cookies = session.cookies.get_dict()
-        return "; ".join([f"{k}={v}" for k, v in new_cookies.items()])
+        response = session.get(url, headers=headers, timeout=20)
+        # الحماية الوحيدة المُضافة: نأخذ الكوكيز الجديد فقط إذا نجح الدخول
+        if response.status_code == 200:
+            new_cookies = session.cookies.get_dict()
+            return "; ".join([f"{k}={v}" for k, v in new_cookies.items()])
+        else:
+            return cookie_to_use
     except:
         return cookie_to_use
 
 # 1. جلب البيانات الحالية من الخزنة
 kv_data = get_last_cookies_from_kv()
 
-# 2. تحديث كل قناة بناءً على كوكيزها الخاص
-final_data = {}
+# 2. التعديل الأهم للتقسيم: ننسخ كل البيانات القديمة (لكي لا نحذف القنوات الأخرى)
+final_data = kv_data.copy()
+
+# 3. نحدث فقط الـ 6 قنوات الخاصة بهذا الملف
 for cid, secret_c in CHANNELS_MAP.items():
     last_c = kv_data.get(cid)
     new_c = refresh_channel(cid, secret_c, last_c)
     if new_c:
         final_data[cid] = new_c
 
-# 3. حفظ البيانات الجديدة في الخزنة
+# 4. حفظ البيانات في الخزنة
 if final_data:
     res = requests.put(KV_URL, headers=CF_HEADERS, data=json.dumps(final_data))
     if res.status_code == 200:
-        print("✅ نجاح: تم تحديث الخزنة بكوكيز جديد لكل قناة.")
+        print("✅ نجاح: تم تحديث الخزنة بكوكيز جديد للقنوات المحددة.")
     else:
         print(f"❌ فشل تحديث الخزنة: {res.text}")
