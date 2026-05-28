@@ -53,3 +53,13 @@ jobs:
           COOKIE_APIX_1: ${{ secrets.COOKIE_APIX_1 }}
           COOKIE_APIX_2: ${{ secrets.COOKIE_APIX_2 }}
         run: python fisher3.py
+
+      - name: Run Fisher 4 (Magic Channels)
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_KV_NAMESPACE: ${{ secrets.CF_KV_NAMESPACE }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          Cookies_magic_action: ${{ secrets.Cookies_magic_action }}
+          Cookies_magic_carton: ${{ secrets.Cookies_magic_carton }}
+          Cookies_magic_hiror: ${{ secrets.Cookies_magic_hiror }}
+        run: python fisher4.py
