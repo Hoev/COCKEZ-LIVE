@@ -8,9 +8,9 @@ USER_AGENT = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:118.0) Gecko/20100101 F
 
 # قنوات ماجيك الثلاث
 CHANNELS_MAP = {
-    "14845223968495": os.getenv('Cookies-magic-action'),
-    "14845262896879": os.getenv('Cookies-magic-carton'),
-    "14845274562287": os.getenv('Cookies-magic-hiror')
+    "14845223968495": os.getenv('Cookies_magic_action'),
+    "14845262896879": os.getenv('Cookies_magic_carton'),
+    "14845274562287": os.getenv('Cookies_magic_hiror')
 }
 
 CF_ACC = os.getenv('CF_ACCOUNT_ID')
