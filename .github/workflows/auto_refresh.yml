@@ -1,4 +1,4 @@
-Name: APiX Auto Fisher (Sharded)
+name: APiX Auto Fisher (Sharded)
 
 on:
   schedule:
