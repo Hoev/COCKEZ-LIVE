@@ -1,9 +1,14 @@
-name: APiX Auto Fisher (Sharded)
+Name: APiX Auto
 
 on:
   schedule:
     - cron: "0 */6 * * *" # يعمل كل 6 ساعات تلقائياً
   workflow_dispatch: # زر التشغيل اليدوي
+
+# إعطاء صلاحية الكتابة (Write) للورك فلو لكي يتمكن من حذف السجلات القديمة
+permissions:
+  actions: write
+  contents: read
 
 jobs:
   build:
@@ -63,3 +68,12 @@ jobs:
           Cookies_magic_carton: ${{ secrets.Cookies_magic_carton }}
           Cookies_magic_hiror: ${{ secrets.Cookies_magic_hiror }}
         run: python fisher4.py
+
+      # --- الإجراء الأخير: تنظيف ذاكرة جيت هوب وحذف السجلات القديمة ---
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 1          # مسح أي سجل مر عليه أكثر من يوم
+          keep_minimum_runs: 3    # الاحتفاظ بآخر 3 عمليات تشغيل دائماً كحد أدنى احتياطياً
